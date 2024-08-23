@@ -9,14 +9,14 @@ using UnityEngine.Windows;
 public class PlayerControl : MonoBehaviour
 {
     private Animator animator;
-    private Vector2 _input;
     private CharacterController _characterController;
+    private Vector2 _input;
     private Vector3 _direction;
-
-    [SerializeField] private float smoothTime = 0.05f;
+    private Vector3 _velocity;
     private float _currentVelocity;
-
+    [SerializeField] private float smoothTime = 0.05f;
     [SerializeField] private float speed;
+    [SerializeField] private float gravity = -9.81f;
 
     private void Awake()
     {
@@ -26,9 +26,9 @@ public class PlayerControl : MonoBehaviour
 
     private void Update()
     {
-        if (_input.sqrMagnitude == 0) 
+        if (_input.sqrMagnitude == 0)
         {
-            animator.SetBool("Moving", false);  
+            animator.SetBool("Moving", false);
             return;
         }
 
@@ -38,9 +38,18 @@ public class PlayerControl : MonoBehaviour
 
         _characterController.Move(_direction * speed * Time.deltaTime);
 
+        // Apply gravity
+        _velocity.y += gravity * Time.deltaTime;
+        _characterController.Move(_velocity * Time.deltaTime);
+
+        // Reset the velocity if the character is grounded
+        if (_characterController.isGrounded && _velocity.y < 0)
+        {
+            _velocity.y = -15f;
+        }
+
         animator.SetBool("Moving", true);
     }
-
     public void Move(InputAction.CallbackContext context)
     {
         _input = context.ReadValue<Vector2>();
